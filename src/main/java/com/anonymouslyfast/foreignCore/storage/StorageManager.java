@@ -12,9 +12,11 @@ public class StorageManager {
     private final GlobalDataSet globalDataSet = new GlobalDataSet();
 
     private final DataBaseManger dataBaseManger;
+    private final DataTypeManager dataTypeManager;
 
     public StorageManager(String dbFile_path) {
         this.dataBaseManger = new DataBaseManger(dbFile_path);
+        this.dataTypeManager = new DataTypeManager();
         dataBaseManger.registerTable("players", Tables.PLAYERS_TABLE);
         dataBaseManger.registerTable("player_data", Tables.PLAYER_DATA_TABLE);
     }
