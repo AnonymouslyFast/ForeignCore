@@ -1,0 +1,9 @@
+name: ForeignCore
+version: '1.0'
+main: com.anonymouslyfast.foreignCore.ForeignCore
+api-version: '1.21'
+prefix: BasicCustomShops
+load: STARTUP
+authors: [ AnonymouslyFast ]
+description: Basic shops for your server!
+website: https://anonymouslyfast.com/
