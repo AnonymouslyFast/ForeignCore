@@ -1,17 +1,19 @@
 package com.anonymouslyfast.foreignCore.storage;
 
+
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-public class PlayerDataSet implements DataSet {
+public class PluginDataSet implements DataSet {
 
     private final HashMap<String, Object> entries = new HashMap<>();
-    private final UUID uuid;
+    private final String pluginName;
 
-    public PlayerDataSet(UUID uuid) {
-        this.uuid = uuid;
+    public PluginDataSet(String pluginName) {
+        this.pluginName = pluginName.toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -30,8 +32,8 @@ public class PlayerDataSet implements DataSet {
         return (T) result;
     }
 
-    public UUID getUUID() {
-        return uuid;
+    public String getPluginName() {
+        return pluginName;
     }
 
     @Override

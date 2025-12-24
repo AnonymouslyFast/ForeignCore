@@ -1,5 +1,7 @@
 package com.anonymouslyfast.foreignCore.storage;
 
+import org.bukkit.Location;
+
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 
@@ -16,26 +18,37 @@ public class DataTypeManager {
         dataTypeByID.put(dataType.id(), dataType);
         dataTypeByClass.put(dataType.clazz(), dataType);
     }
-
+    @SuppressWarnings("unchecked")
     public <T> DataType<T> getDataType(Class<T> clazz) {
         return (DataType<T>) dataTypeByID.get(clazz);
     }
-
+    @SuppressWarnings("unchecked")
     public <T> DataType<T> getDataType(String id) {
         return (DataType<T>) dataTypeByID.get(id);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> String serialize(T value) {
         DataType<T> dataType = (DataType<T>) dataTypeByClass.get(value.getClass());
         if (dataType == null) throw new NoSuchElementException("No datatype found for " + value.getClass());
         return dataType.serialize(value);
     }
 
-    public <T> T deserialize(String value) {
-        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(value);
-        if (dataType == null) throw new NoSuchElementException("No datatype found for " + value.getClass());
+    @SuppressWarnings("unchecked")
+    public <T> T deserialize(String value, Class<T> clazz) {
+        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(clazz);
+        if (dataType == null) throw new NoSuchElementException("No datatype found for class: " + clazz);
         return dataType.deserialize(value);
     }
+    @SuppressWarnings("unchecked")
+    public <T> T deserialize(String value, String id) {
+        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(id);
+        if (dataType == null) throw new NoSuchElementException("No datatype found for id: " + id);
+        return dataType.deserialize(value);
+    }
+
+    public boolean containsID(String id) { return dataTypeByID.containsKey(id); }
+    public boolean containsClass(Class<?> clazz) { return dataTypeByClass.containsKey(clazz); }
 
     private void registerDefautDataTypes() {
         registerDataType(new DataType<Integer>() {
@@ -65,5 +78,6 @@ public class DataTypeManager {
             @Override public String serialize(Boolean value) { return value.toString(); }
             @Override public Boolean deserialize(String value) { return Boolean.parseBoolean(value); }
         });
+
     }
 }

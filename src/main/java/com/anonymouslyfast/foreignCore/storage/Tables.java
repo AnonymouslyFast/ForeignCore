@@ -16,8 +16,19 @@ public final class Tables {
         CREATE TABLE IF NOT EXISTS player_data (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             uuid VARCHAR(36) NOT NULL,
-            key TEXT,
+            'key' TEXT,
+            type TEXT,
             UNIQUE (uuid, key)
+        );
+    """;
+
+    public static final String PLUGIN_DATA_TABLE = """
+        CREATE TABLE IF NOT EXISTS plugin_data (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            plugin_name VARCHAR(64) NOT NULL,
+            'key' TEXT,
+            type TEXT,
+            PRIMARY KEY (plugin_id, 'key')
         );
     """;
 
