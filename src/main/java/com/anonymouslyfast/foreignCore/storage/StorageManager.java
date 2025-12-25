@@ -1,12 +1,18 @@
 package com.anonymouslyfast.foreignCore.storage;
 
+import com.anonymouslyfast.foreignCore.ForeignCore;
+import org.bukkit.Bukkit;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StorageManager {
 
@@ -16,12 +22,16 @@ public class StorageManager {
     private final DataBaseManger dataBaseManger;
     private final DataTypeManager dataTypeManager;
 
+    private final Logger logger;
+
     public StorageManager(String dbFile_path) {
+        logger = ForeignCore.getInstance().getLogger();
         this.dataBaseManger = new DataBaseManger(dbFile_path);
-        this.dataTypeManager = new DataTypeManager();
         dataBaseManger.registerTable("players", Tables.PLAYERS_TABLE);
         dataBaseManger.registerTable("player_data", Tables.PLAYER_DATA_TABLE);
         dataBaseManger.registerTable("plugin_data", Tables.PLUGIN_DATA_TABLE);
+        dataBaseManger.loadTables();
+        this.dataTypeManager = new DataTypeManager();
         loadAllPluginData();
     }
 
@@ -29,13 +39,26 @@ public class StorageManager {
         return playerDataSets.computeIfAbsent(uuid, this::loadPlayerData);
     }
 
-    public boolean cacheContainsPlayer(UUID uuid) {
-        return playerDataSets.containsKey(uuid);
-    }
-
     public PluginDataSet getPluginDataSet(String pluginName) {
         return pluginDataSets.get(pluginName);
     }
+
+    public Map<UUID, PlayerDataSet> getPlayerDataSets() {
+        return Collections.unmodifiableMap(playerDataSets);
+    }
+
+    public Map<String, PluginDataSet> getPluginDataSets() {
+        return Collections.unmodifiableMap(pluginDataSets);
+    }
+
+    public void addToPlayerDataCache(PlayerDataSet playerDataSet) {
+        playerDataSets.put(playerDataSet.getUUID(), playerDataSet);
+    }
+
+    public void addToPluginDataCache(PluginDataSet pluginDataSet) {
+        pluginDataSets.put(pluginDataSet.getPluginName(), pluginDataSet);
+    }
+
 
     private PlayerDataSet loadPlayerData(UUID uuid) {
         PlayerDataSet playerDataSet = new PlayerDataSet(uuid);
@@ -57,8 +80,7 @@ public class StorageManager {
             }
 
         } catch (SQLException e) {
-            //TODO: replace with own logger stuff.
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to load player data for " + Bukkit.getOfflinePlayer(playerDataSet.getUUID()).getName(), e);
         }
 
         playerDataSets.put(uuid, playerDataSet);
@@ -80,7 +102,10 @@ public class StorageManager {
             for (Map.Entry<String, Object> entry : playerDataSet.getEntries().entrySet()) {
                 DataType<?> dataType =  dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
-                    //TODO: Log that this is result of no valid datatype, resulting in data loss.
+                    logger.log(Level.WARNING,
+                            "The DataType: " + dataType.id() + " is not a valid type, therefore " + entry.getValue()
+                                    + " is not saved for the player " + Bukkit.getPlayer(playerDataSet.getUUID())
+                    );
                     continue;
                 }
                 String serializedValue = dataType.serializeAny(entry.getValue());
@@ -91,8 +116,7 @@ public class StorageManager {
             }
             statement.executeBatch();
         } catch (SQLException e) {
-            //TODO: replace with own logger stuff.
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to save " + Bukkit.getOfflinePlayer(playerDataSet.getUUID()).getName() + "'s data", e);
         }
     }
 
@@ -118,10 +142,9 @@ public class StorageManager {
                     pluginDataSet.put(key, deserializedValue);
                 }
             }
-
+            logger.info("Successfully cached " + pluginDataSets.size() + " plugin's data!");
         } catch (SQLException e) {
-            //TODO: replace with own logger stuff.
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to load plugin data", e);
         }
     }
 
@@ -139,7 +162,10 @@ public class StorageManager {
             for (Map.Entry<String, Object> entry : pluginDataSet.getEntries().entrySet()) {
                 DataType<?> dataType =  dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
-                    //TODO: Log that this is result of no valid datatype, resulting in data loss.
+                    logger.log(Level.WARNING,
+                            "The DataType: " + entry.getValue().getClass() + " is not a valid type, therefore " + entry.getValue()
+                                    + " is not saved for the plugin " + pluginDataSet.getPluginName()
+                    );
                     continue;
                 }
                 String serializedValue = dataType.serializeAny(entry.getValue());
@@ -150,8 +176,7 @@ public class StorageManager {
             }
             statement.executeBatch();
         } catch (SQLException e) {
-            //TODO: replace with own logger stuff.
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to save " + pluginDataSet.getPluginName() + "'s data", e);
         }
     }
 }

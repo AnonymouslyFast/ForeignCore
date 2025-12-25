@@ -17,6 +17,7 @@ public final class Tables {
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             uuid VARCHAR(36) NOT NULL,
             'key' TEXT,
+            value TEXT,
             type TEXT,
             UNIQUE (uuid, key)
         );
@@ -24,11 +25,12 @@ public final class Tables {
 
     public static final String PLUGIN_DATA_TABLE = """
         CREATE TABLE IF NOT EXISTS plugin_data (
-            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            id BIGINT AUTO_INCREMENT,
             plugin_name VARCHAR(64) NOT NULL,
             'key' TEXT,
+            value TEXT,
             type TEXT,
-            PRIMARY KEY (plugin_id, 'key')
+            PRIMARY KEY (plugin_name, 'key')
         );
     """;
 

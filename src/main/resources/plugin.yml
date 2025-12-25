@@ -2,8 +2,8 @@ name: ForeignCore
 version: '1.0'
 main: com.anonymouslyfast.foreignCore.ForeignCore
 api-version: '1.21'
-prefix: BasicCustomShops
+prefix: ForeignCore
 load: STARTUP
 authors: [ AnonymouslyFast ]
-description: Basic shops for your server!
+description: Core plugin for the Minecraft server 'ForeignMines', deals with data handling, and loads of backend stuff.
 website: https://anonymouslyfast.com/
