@@ -22,7 +22,7 @@ public class DataTypeManager {
     }
     @SuppressWarnings("unchecked")
     public <T> DataType<T> getDataType(Class<T> clazz) {
-        return (DataType<T>) dataTypeByID.get(clazz);
+        return (DataType<T>) dataTypeByClass.get(clazz);
     }
     @SuppressWarnings("unchecked")
     public <T> DataType<T> getDataType(String id) {
@@ -50,9 +50,10 @@ public class DataTypeManager {
         if (dataType == null) throw new NoSuchElementException("No datatype found for class: " + clazz);
         return dataType.deserialize(value);
     }
+
     @SuppressWarnings("unchecked")
     public <T> T deserialize(String value, String id) {
-        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(id);
+        DataType<T> dataType = (DataType<T>) dataTypeByID.get(id);
         if (dataType == null) throw new NoSuchElementException("No datatype found for id: " + id);
         return dataType.deserialize(value);
     }

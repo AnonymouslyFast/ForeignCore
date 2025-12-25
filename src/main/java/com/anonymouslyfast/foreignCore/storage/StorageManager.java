@@ -73,7 +73,7 @@ public class StorageManager {
                     String value = resultSet.getString("value");
                     String type = resultSet.getString("type");
 
-                    Object deserializedValue = dataTypeManager.deserialize(type, value);
+                    Object deserializedValue = dataTypeManager.deserialize(value, type);
 
                     playerDataSet.put(key, deserializedValue);
                 }
@@ -132,7 +132,7 @@ public class StorageManager {
                     String value = resultSet.getString("value");
                     String type = resultSet.getString("type");
 
-                    Object deserializedValue = dataTypeManager.deserialize(type, value);
+                    Object deserializedValue = dataTypeManager.deserialize(value, type);
 
                     PluginDataSet pluginDataSet = getPluginDataSet(pluginName);
                     if (pluginDataSet == null) {
@@ -160,8 +160,6 @@ public class StorageManager {
         try (PreparedStatement statement = dataBaseManger.getConnection().prepareStatement(sql)) {
             statement.setString(1, pluginDataSet.getPluginName());
             for (Map.Entry<String, Object> entry : pluginDataSet.getEntries().entrySet()) {
-                logger.info(dataTypeManager.getAllDataTypeIds().toString());
-                logger.info(dataTypeManager.getAllDataTypeClasses().toString());
                 DataType<?> dataType = dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
                     logger.log(Level.WARNING,
