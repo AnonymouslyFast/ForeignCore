@@ -2,7 +2,9 @@ package com.anonymouslyfast.foreignCore.storage;
 
 import org.bukkit.Location;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class DataTypeManager {
@@ -32,6 +34,14 @@ public class DataTypeManager {
         DataType<T> dataType = (DataType<T>) dataTypeByClass.get(value.getClass());
         if (dataType == null) throw new NoSuchElementException("No datatype found for " + value.getClass());
         return dataType.serialize(value);
+    }
+
+    public List<String> getAllDataTypeIds() {
+        return new ArrayList<>(dataTypeByID.keySet());
+    }
+
+    public List<Class<?>> getAllDataTypeClasses() {
+        return new ArrayList<>(dataTypeByClass.keySet());
     }
 
     @SuppressWarnings("unchecked")

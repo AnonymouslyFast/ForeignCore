@@ -26,12 +26,12 @@ public class StorageManager {
 
     public StorageManager(String dbFile_path) {
         logger = ForeignCore.getInstance().getLogger();
+        this.dataTypeManager = new DataTypeManager();
         this.dataBaseManger = new DataBaseManger(dbFile_path);
         dataBaseManger.registerTable("players", Tables.PLAYERS_TABLE);
         dataBaseManger.registerTable("player_data", Tables.PLAYER_DATA_TABLE);
         dataBaseManger.registerTable("plugin_data", Tables.PLUGIN_DATA_TABLE);
         dataBaseManger.loadTables();
-        this.dataTypeManager = new DataTypeManager();
         loadAllPluginData();
     }
 
@@ -160,7 +160,9 @@ public class StorageManager {
         try (PreparedStatement statement = dataBaseManger.getConnection().prepareStatement(sql)) {
             statement.setString(1, pluginDataSet.getPluginName());
             for (Map.Entry<String, Object> entry : pluginDataSet.getEntries().entrySet()) {
-                DataType<?> dataType =  dataTypeManager.getDataType(entry.getValue().getClass());
+                logger.info(dataTypeManager.getAllDataTypeIds().toString());
+                logger.info(dataTypeManager.getAllDataTypeClasses().toString());
+                DataType<?> dataType = dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
                     logger.log(Level.WARNING,
                             "The DataType: " + entry.getValue().getClass() + " is not a valid type, therefore " + entry.getValue()

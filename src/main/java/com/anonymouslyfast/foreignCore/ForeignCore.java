@@ -1,15 +1,19 @@
 package com.anonymouslyfast.foreignCore;
 
+import com.anonymouslyfast.foreignCore.storage.DataTypeManager;
 import com.anonymouslyfast.foreignCore.storage.PluginDataSet;
 import com.anonymouslyfast.foreignCore.storage.StorageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.concurrent.TimeUnit;
+
 
 public final class ForeignCore extends JavaPlugin {
 
     private final String DB_FILE_PATH = getDataFolder() + "/database.db";
-    private final long AUTO_SAVE_DELAY = 12000; // In ticks, so 12,000 is 10 minutes.
+    private final long AUTO_SAVE_DELAY = 10; // In minutes
+    private final long AUTO_SAVE_INITIAL_DELAY = 1;
 
     private static ForeignCore instance = null;
     private StorageManager storageManager;
@@ -37,10 +41,10 @@ public final class ForeignCore extends JavaPlugin {
 
 
         // Auto save cache every 10 minutes
-        Bukkit.getScheduler().runTaskLaterAsynchronously(ForeignCore.getInstance(), () -> {
+        Bukkit.getAsyncScheduler().runAtFixedRate(ForeignCore.getInstance(), task -> {
             saveAllStorage();
             getLogger().info("DATABASE AUTOSAVE: Cache has been saved to database!");
-        }, AUTO_SAVE_DELAY);
+        }, AUTO_SAVE_INITIAL_DELAY, AUTO_SAVE_DELAY, TimeUnit.MINUTES);
     }
 
     @Override
