@@ -8,7 +8,7 @@ public final class Tables {
             uuid VARCHAR(36) NOT NULL UNIQUE,
             username TEXT,
             initial_ip TEXT,
-            joined_at TIMESTAMP NOT NULL
+            joined_at INTEGER NOT NULL
         );
     """;
 

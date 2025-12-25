@@ -1,6 +1,8 @@
 package com.anonymouslyfast.foreignCore.listeners;
 
 import com.anonymouslyfast.foreignCore.ForeignCore;
+import com.anonymouslyfast.foreignCore.storage.PlayerDataSet;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,13 +15,27 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        // Loading the player into cache - won't do anything if they already are.
+        Bukkit.getAsyncScheduler().runNow(ForeignCore.getInstance(), (scheduledTask ->  {
+            ForeignCore.getInstance().getStorageManager().loadPlayerToCache(event.getPlayer());
+            PlayerDataSet playerDataSet = ForeignCore.getInstance().getStorageManager().getPlayerData(event.getPlayer().getUniqueId());
+            ForeignCore.getInstance().getStorageManager().addToPlayerDataCache(playerDataSet);
 
-        // New player | Saving to database
-        if (ForeignCore.getInstance().getStorageManager().getOrLoadPlayerData(player.getUniqueId()) == null) {
-            Bukkit.getScheduler().runTaskAsynchronously(ForeignCore.getInstance(), () -> {
-
-            });
-        }
+            // Test usage of the per player storage
+//            PlayerDataSet cachedDataSet = ForeignCore.getInstance().getStorageManager().getPlayerData(event.getPlayer().getUniqueId());
+//            if (cachedDataSet == null) {
+//                ForeignCore.getInstance().getLogger().warning("Failed to load the player's data!");
+//            }
+//            if (!cachedDataSet.contains("testValue")) {
+//                cachedDataSet.put("testValue", 77777);
+//                ForeignCore.getInstance().getLogger().info("Loaded test value!");
+//            }
+//            Integer storedValue = cachedDataSet.get("testValue", Integer.class);
+//            if (storedValue == null) {
+//                ForeignCore.getInstance().getLogger().warning("Failed to load test value!");
+//                return;
+//            }
+//            ForeignCore.getInstance().getLogger().info(storedValue.toString());
+        }));
     }
 }

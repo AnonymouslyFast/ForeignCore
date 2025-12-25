@@ -2,10 +2,11 @@ package com.anonymouslyfast.foreignCore.storage;
 
 import com.anonymouslyfast.foreignCore.ForeignCore;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.annotation.Nullable;
+import java.sql.*;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -35,11 +36,20 @@ public class StorageManager {
         loadAllPluginData();
     }
 
-    public PlayerDataSet getOrLoadPlayerData(UUID uuid) {
+    /**
+     * Only use when there's a possibility that the player has not been registered to databases.
+     * @apiNote Only use asynchronously.
+     * @return cached, or newly loaded/created player data. Only returns null, if sql has encountered an error.
+     */
+    public @Nullable PlayerDataSet getOrLoadPlayerData(UUID uuid) {
         return playerDataSets.computeIfAbsent(uuid, this::loadPlayerData);
     }
 
-    public PluginDataSet getPluginDataSet(String pluginName) {
+    public @Nullable PlayerDataSet getPlayerData(UUID uuid) {
+        return playerDataSets.get(uuid);
+    }
+
+    public @Nullable PluginDataSet getPluginDataSet(String pluginName) {
         return pluginDataSets.get(pluginName);
     }
 
@@ -59,8 +69,55 @@ public class StorageManager {
         pluginDataSets.put(pluginDataSet.getPluginName(), pluginDataSet);
     }
 
+    public boolean playerIsRegistered(UUID uuid) {
+        String sql = "SELECT 1 FROM players WHERE uuid = ?";
 
-    private PlayerDataSet loadPlayerData(UUID uuid) {
+        try (PreparedStatement ps = dataBaseManger.getConnection().prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return !rs.next(); // There's no row, so there's no player in the db with the uuid.
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Failed to check player existence: " + uuid, e);
+            return false;
+        }
+    }
+
+    /**
+     * Loads the player to cache, will do nothing if the player already is in cache.
+     * @apiNote Only use asynchronously.
+     */
+    public void loadPlayerToCache(Player player) {
+
+        if (!playerIsRegistered(player.getUniqueId())) {
+            String sql = """
+            INSERT INTO players (uuid, username, initial_ip, joined_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(uuid) DO NOTHING
+           """;
+
+            try (PreparedStatement preparedStatement = dataBaseManger.getConnection().prepareStatement(sql)) {
+                String ip = "0.0.0.0";
+                if (player.getAddress() != null) { ip = player.getAddress().getAddress().toString(); }
+
+                preparedStatement.setString(1, player.getUniqueId().toString());
+                preparedStatement.setString(2, player.getName());
+                preparedStatement.setString(3, ip);
+                preparedStatement.setLong(4, Instant.now().toEpochMilli());
+                preparedStatement.execute();
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "Failed to register player " + player.getUniqueId(), e);
+            }
+        }
+
+        // Loading, and caching playerdata
+        getOrLoadPlayerData(player.getUniqueId());
+    }
+
+
+    private @Nullable PlayerDataSet loadPlayerData(UUID uuid) {
         PlayerDataSet playerDataSet = new PlayerDataSet(uuid);
 
         String sql = "SELECT * FROM player_data WHERE uuid = ?";
@@ -80,10 +137,11 @@ public class StorageManager {
             }
 
         } catch (SQLException e) {
-            logger.log(Level.WARNING, "Failed to load player data for " + Bukkit.getOfflinePlayer(playerDataSet.getUUID()).getName(), e);
+            logger.log(Level.WARNING, "Failed to load player data for " + uuid, e);
+            return null;
         }
 
-        playerDataSets.put(uuid, playerDataSet);
+        logger.info("PLAYER_DATA: Successfully loaded " + playerDataSet.getEntries().size() + " item[s] for " + uuid);
         return playerDataSet;
     }
 

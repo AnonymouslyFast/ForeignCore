@@ -1,5 +1,6 @@
 package com.anonymouslyfast.foreignCore;
 
+import com.anonymouslyfast.foreignCore.listeners.PlayerJoinListener;
 import com.anonymouslyfast.foreignCore.storage.DataTypeManager;
 import com.anonymouslyfast.foreignCore.storage.PluginDataSet;
 import com.anonymouslyfast.foreignCore.storage.StorageManager;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public final class ForeignCore extends JavaPlugin {
 
     private final String DB_FILE_PATH = getDataFolder() + "/database.db";
-    private final long AUTO_SAVE_DELAY = 10; // In minutes
+    private final long AUTO_SAVE_DELAY = 60; // In minutes
     private final long AUTO_SAVE_INITIAL_DELAY = 1;
 
     private static ForeignCore instance = null;
@@ -38,6 +39,8 @@ public final class ForeignCore extends JavaPlugin {
         }
 
         getLogger().info("TEST VALUE: " + pluginDataSet.get("testValue", Integer.class));
+
+        registerListeners();
 
 
         // Auto save cache every 10 minutes
@@ -69,4 +72,8 @@ public final class ForeignCore extends JavaPlugin {
         return instance;
     }
     public StorageManager getStorageManager() { return storageManager; }
+
+    private void registerListeners() {
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+    }
 }
