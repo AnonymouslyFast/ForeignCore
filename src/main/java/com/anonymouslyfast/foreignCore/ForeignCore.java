@@ -7,6 +7,7 @@ import com.anonymouslyfast.foreignCore.storage.StorageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 
@@ -43,11 +44,19 @@ public final class ForeignCore extends JavaPlugin {
         registerListeners();
 
 
-        // Auto save cache every 10 minutes
+        // Auto save and clean up cache
         Bukkit.getAsyncScheduler().runAtFixedRate(ForeignCore.getInstance(), task -> {
             saveAllStorage();
-            getLogger().info("DATABASE AUTOSAVE: Cache has been saved to database!");
+            // Cleaning up cache
+            for (UUID uuid : storageManager.getPlayerDataSets().keySet()) {
+                Bukkit.getScheduler().runTask(this, () -> {
+                    if (!Bukkit.getOfflinePlayer(uuid).isOnline()) {
+                        storageManager.remveFromPlayerCache(uuid);
+                    }
+                });
+            }
         }, AUTO_SAVE_INITIAL_DELAY, AUTO_SAVE_DELAY, TimeUnit.MINUTES);
+        getLogger().info("DATABASE AUTOSAVE: Cache has been saved, and cleaned up!");
     }
 
     @Override

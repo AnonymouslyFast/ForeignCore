@@ -65,6 +65,13 @@ public class StorageManager {
         playerDataSets.put(playerDataSet.getUUID(), playerDataSet);
     }
 
+    /**
+     * @apiNote Doesn't auto save to db, if you use this, the data not saved will be lost.
+     */
+    public void remveFromPlayerCache(UUID uuid) {
+        playerDataSets.remove(uuid);
+    }
+
     public void addToPluginDataCache(PluginDataSet pluginDataSet) {
         pluginDataSets.put(pluginDataSet.getPluginName(), pluginDataSet);
     }

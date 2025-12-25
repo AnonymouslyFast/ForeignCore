@@ -15,7 +15,13 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // Loading the player into cache - won't do anything if they already are.
+
+        // Player's data is already cached.
+        if (ForeignCore.getInstance().getStorageManager().getPlayerData(event.getPlayer().getUniqueId()) != null) {
+            return;
+        }
+
+        // Loading the player into cache
         Bukkit.getAsyncScheduler().runNow(ForeignCore.getInstance(), (scheduledTask ->  {
             ForeignCore.getInstance().getStorageManager().loadPlayerToCache(event.getPlayer());
             PlayerDataSet playerDataSet = ForeignCore.getInstance().getStorageManager().getPlayerData(event.getPlayer().getUniqueId());
