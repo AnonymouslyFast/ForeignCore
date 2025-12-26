@@ -16,6 +16,7 @@ public class PluginDataSet implements DataSet {
         this.pluginName = pluginName.toLowerCase(Locale.ROOT);
     }
 
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> @Nullable T get(String key, Class<T> clazz) {
@@ -36,6 +37,7 @@ public class PluginDataSet implements DataSet {
         return pluginName;
     }
 
+
     @Override
     public void put(String key, Object value) {
         if (entries.containsKey(key)) throw new IllegalArgumentException("Duplicate key: " + key);
@@ -51,6 +53,7 @@ public class PluginDataSet implements DataSet {
     public boolean contains(String key) {
         return entries.containsKey(key);
     }
+
 
     @Override
     public void update(String key, Object value) {

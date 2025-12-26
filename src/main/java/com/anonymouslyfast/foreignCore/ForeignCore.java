@@ -34,12 +34,13 @@ public final class ForeignCore extends JavaPlugin {
             storageManager.addToPluginDataCache(pluginDataSet);
         }
 
-        if (!pluginDataSet.contains("testValue")) {
-            pluginDataSet.put("testValue", 80085);
-            getLogger().info("Set the test value!");
-        }
-
-        getLogger().info("TEST VALUE: " + pluginDataSet.get("testValue", Integer.class));
+        // Test of plugin data usage
+//        if (!pluginDataSet.contains("testValue")) {
+//            pluginDataSet.put("testValue", 80085);
+//            getLogger().info("Set the test value!");
+//        }
+//
+//        getLogger().info("TEST VALUE: " + pluginDataSet.get("testValue", Integer.class));
 
         registerListeners();
 

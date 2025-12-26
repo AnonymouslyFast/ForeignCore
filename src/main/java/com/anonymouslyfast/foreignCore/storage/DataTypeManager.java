@@ -29,33 +29,12 @@ public class DataTypeManager {
         return (DataType<T>) dataTypeByID.get(id);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> String serialize(T value) {
-        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(value.getClass());
-        if (dataType == null) throw new NoSuchElementException("No datatype found for " + value.getClass());
-        return dataType.serialize(value);
-    }
-
     public List<String> getAllDataTypeIds() {
         return new ArrayList<>(dataTypeByID.keySet());
     }
 
     public List<Class<?>> getAllDataTypeClasses() {
         return new ArrayList<>(dataTypeByClass.keySet());
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T deserialize(String value, Class<T> clazz) {
-        DataType<T> dataType = (DataType<T>) dataTypeByClass.get(clazz);
-        if (dataType == null) throw new NoSuchElementException("No datatype found for class: " + clazz);
-        return dataType.deserialize(value);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T deserialize(String value, String id) {
-        DataType<T> dataType = (DataType<T>) dataTypeByID.get(id);
-        if (dataType == null) throw new NoSuchElementException("No datatype found for id: " + id);
-        return dataType.deserialize(value);
     }
 
     public boolean containsID(String id) { return dataTypeByID.containsKey(id); }

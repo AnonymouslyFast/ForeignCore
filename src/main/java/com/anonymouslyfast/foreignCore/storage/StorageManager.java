@@ -38,6 +38,7 @@ public class StorageManager {
 
     /**
      * Only use when there's a possibility that the player has not been registered to databases.
+     * <br><br> Will create an empty PlayerDataSet for the player, if it doesn't exist.
      * @apiNote Only use asynchronously.
      * @return cached, or newly loaded/created player data. Only returns null, if sql has encountered an error.
      */
@@ -45,37 +46,61 @@ public class StorageManager {
         return playerDataSets.computeIfAbsent(uuid, this::loadPlayerData);
     }
 
+    /**
+     * @return The player dataset associated with the uuid, if it can't find any, then returns <code>null</code>.
+     */
     public @Nullable PlayerDataSet getPlayerData(UUID uuid) {
         return playerDataSets.get(uuid);
     }
 
+    /**
+     * @return The plugin dataset associated with the plugin name, if it can't find any, then returns <code>null</code>.
+     */
     public @Nullable PluginDataSet getPluginDataSet(String pluginName) {
         return pluginDataSets.get(pluginName);
     }
 
+    /**
+     * @return Unmodifiable map containing the same entries as the playerDataSets cache map.
+     */
     public Map<UUID, PlayerDataSet> getPlayerDataSets() {
         return Collections.unmodifiableMap(playerDataSets);
     }
-
+    /**
+     * @return Unmodifiable map containing the same entries as the pluginDataSets cache map.
+     */
     public Map<String, PluginDataSet> getPluginDataSets() {
         return Collections.unmodifiableMap(pluginDataSets);
     }
 
+    /**
+     * Adds the specified PlayerDataSets to the playerDataSets cache.
+     */
     public void addToPlayerDataCache(PlayerDataSet playerDataSet) {
         playerDataSets.put(playerDataSet.getUUID(), playerDataSet);
     }
 
     /**
-     * @apiNote Doesn't auto save to db, if you use this, the data not saved will be lost.
+     * Removes the specified player from the playerDataSets cache.
+     * @apiNote Doesn't auto save to db, if you use this, the data not saved will be loss.
      */
     public void remveFromPlayerCache(UUID uuid) {
         playerDataSets.remove(uuid);
     }
 
+    /**
+     * Adds the specified PluginDataSet to the pluginDataSets cache.
+     */
     public void addToPluginDataCache(PluginDataSet pluginDataSet) {
         pluginDataSets.put(pluginDataSet.getPluginName(), pluginDataSet);
     }
 
+    /**
+     * Searches through the 'players' table in the database for the provided UUID.
+     * @param uuid The UUID for the specified player.
+     * @return If an uuid is found, it will return true, otherwise, false.
+     * @apiNote Ideally should run asynchronously, but can run synchronously.
+     */
     public boolean playerIsRegistered(UUID uuid) {
         String sql = "SELECT 1 FROM players WHERE uuid = ?";
 
@@ -137,7 +162,8 @@ public class StorageManager {
                     String value = resultSet.getString("value");
                     String type = resultSet.getString("type");
 
-                    Object deserializedValue = dataTypeManager.deserialize(value, type);
+                    DataType<?> dataType = dataTypeManager.getDataType(type);
+                    Object deserializedValue = dataType.deserialize(value);
 
                     playerDataSet.put(key, deserializedValue);
                 }
@@ -152,6 +178,12 @@ public class StorageManager {
         return playerDataSet;
     }
 
+    /**
+     * Saves player data to database.
+     * @apiNote Only use asynchronously.
+     * @param playerDataSet The PlayerDataSet to be saved in database.
+     */
+    @SuppressWarnings("unchecked")
     public void savePlayerData(PlayerDataSet playerDataSet) {
 
         String sql = """
@@ -164,16 +196,16 @@ public class StorageManager {
 
         try (PreparedStatement statement = dataBaseManger.getConnection().prepareStatement(sql)) {
             statement.setString(1, playerDataSet.getUUID().toString().toLowerCase(Locale.ROOT));
-            for (Map.Entry<String, Object> entry : playerDataSet.getEntries().entrySet()) {
+            for (Map.Entry<String, ?> entry : playerDataSet.getEntries().entrySet()) {
                 DataType<?> dataType =  dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
                     logger.log(Level.WARNING,
-                            "The DataType: " + dataType.id() + " is not a valid type, therefore " + entry.getValue()
+                            "The DataType: " + entry.getValue().getClass() + " is not a valid type, therefore " + entry.getValue()
                                     + " is not saved for the player " + Bukkit.getPlayer(playerDataSet.getUUID())
                     );
                     continue;
                 }
-                String serializedValue = dataType.serializeAny(entry.getValue());
+                String serializedValue = ((DataType<Object>) dataType).serialize(entry.getValue());
                 statement.setString(2, entry.getKey());
                 statement.setString(3, serializedValue);
                 statement.setString(4, dataType.id());
@@ -185,7 +217,19 @@ public class StorageManager {
         }
     }
 
-    public void savePlayerData(UUID uuid) { savePlayerData(getOrLoadPlayerData(uuid)); }
+    /**
+     * Automatically gets the dataset, from the given uuid, and then calls savePlayerData(dataSet).
+     * @apiNote Only use asynchronously.
+     * @param uuid The player's uuid
+     * @throws IllegalStateException Throws only when there's no cached player data to save.
+     */
+    public void savePlayerData(UUID uuid) {
+        PlayerDataSet playerDataSet = getPlayerData(uuid);
+        if (playerDataSet == null) {
+            throw new IllegalStateException("No player data cached for " + uuid);
+        }
+        savePlayerData(playerDataSet);
+    }
 
     private void loadAllPluginData() {
         String sql = "SELECT * FROM plugin_data";
@@ -197,7 +241,8 @@ public class StorageManager {
                     String value = resultSet.getString("value");
                     String type = resultSet.getString("type");
 
-                    Object deserializedValue = dataTypeManager.deserialize(value, type);
+                    DataType<?> dataType = dataTypeManager.getDataType(type);
+                    Object deserializedValue = dataType.deserialize(value);
 
                     PluginDataSet pluginDataSet = getPluginDataSet(pluginName);
                     if (pluginDataSet == null) {
@@ -213,6 +258,13 @@ public class StorageManager {
         }
     }
 
+
+    /**
+     * Saves plugin data to database.
+     * @apiNote Only use asynchronously.
+     * @param pluginDataSet The PluginDataSet to be saved in database.
+     */
+    @SuppressWarnings("unchecked")
     public void savePluginData(PluginDataSet pluginDataSet) {
         String sql = """
             INSERT INTO plugin_data (plugin_name, `key`, value, type)
@@ -224,16 +276,15 @@ public class StorageManager {
 
         try (PreparedStatement statement = dataBaseManger.getConnection().prepareStatement(sql)) {
             statement.setString(1, pluginDataSet.getPluginName());
-            for (Map.Entry<String, Object> entry : pluginDataSet.getEntries().entrySet()) {
-                DataType<?> dataType = dataTypeManager.getDataType(entry.getValue().getClass());
+            for (Map.Entry<String, ?> entry : pluginDataSet.getEntries().entrySet()) {
+                DataType<?> dataType =  dataTypeManager.getDataType(entry.getValue().getClass());
                 if (dataType == null) {
                     logger.log(Level.WARNING,
                             "The DataType: " + entry.getValue().getClass() + " is not a valid type, therefore " + entry.getValue()
-                                    + " is not saved for the plugin " + pluginDataSet.getPluginName()
-                    );
+                                    + " is not saved for the plugin " + pluginDataSet.getPluginName());
                     continue;
                 }
-                String serializedValue = dataType.serializeAny(entry.getValue());
+                String serializedValue = ((DataType<Object>) dataType).serialize(entry.getValue());
                 statement.setString(2, entry.getKey());
                 statement.setString(3, serializedValue);
                 statement.setString(4, dataType.id());
