@@ -1,5 +1,7 @@
 package com.anonymouslyfast.foreignCore.storage;
 
+import com.anonymouslyfast.foreignCore.ForeignCore;
+
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.NoSuchElementException;

@@ -295,4 +295,68 @@ public class StorageManager {
             logger.log(Level.WARNING, "Failed to save " + pluginDataSet.getPluginName() + "'s data", e);
         }
     }
+
+    /**
+     * gets the initial_ip from the players table and returns it.
+     * @apiNote Only use asynchronously.
+     * @return The initial ip that is set to the players database at first join.
+     */
+    public @Nullable String getFirstIP(UUID uuid) {
+        String sql = "SELECT initial_ip FROM players WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = dataBaseManger.getConnection().prepareStatement(sql)) {
+            preparedStatement.setString(1, uuid.toString());
+            try (ResultSet set = preparedStatement.executeQuery()) {
+                if (!set.next()) {
+                    return null;
+                }
+                return set.getString("initial_ip");
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Failed to get initial IP address of " + uuid, e);
+            return null;
+        }
+    }
+
+    /**
+     * gets the joined_at from the players table and returns it.
+     * @apiNote Only use asynchronously.
+     * @return The joined at timestamp that is set to the players database at first join.
+     */
+    public @Nullable Timestamp getPlayerJoinedAt(UUID uuid) {
+        String sql = "SELECT joined_at FROM players WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = dataBaseManger.getConnection().prepareStatement(sql)) {
+            preparedStatement.setString(1, uuid.toString());
+            try (ResultSet set = preparedStatement.executeQuery()) {
+                if (!set.next()) {
+                    return null;
+                }
+                return Timestamp.from(Instant.ofEpochMilli(set.getLong("joined_at")));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Failed to get the joined at timestamp for" + uuid, e);
+            return null;
+        }
+    }
+
+    /**
+     * gets the id from the players table and returns it.
+     * @apiNote Only use asynchronously.
+     * @return The player id that is set to the players database at first join.
+     */
+    public @Nullable Integer getPlayerID(UUID uuid) {
+        String sql = "SELECT id FROM players WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = dataBaseManger.getConnection().prepareStatement(sql)) {
+            preparedStatement.setString(1, uuid.toString());
+            try (ResultSet set = preparedStatement.executeQuery()) {
+                if (!set.next()) {
+                    return null;
+                }
+                return set.getInt("id");
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "Failed to get the player id for " + uuid, e);
+            return null;
+        }
+    }
+
 }
