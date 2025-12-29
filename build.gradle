@@ -47,6 +47,12 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+    source = '21'
+}
+
+
 processResources {
     def props = [version: version]
     inputs.properties props
