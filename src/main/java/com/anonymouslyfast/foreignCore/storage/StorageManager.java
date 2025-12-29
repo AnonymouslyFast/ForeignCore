@@ -39,7 +39,7 @@ public class StorageManager {
     /**
      * Only use when there's a possibility that the player has not been registered to databases.
      * <br><br> Will create an empty PlayerDataSet for the player, if it doesn't exist.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @return cached, or newly loaded/created player data. Only returns null, if sql has encountered an error.
      */
     public @Nullable PlayerDataSet getOrLoadPlayerData(UUID uuid) {
@@ -82,7 +82,7 @@ public class StorageManager {
 
     /**
      * Removes the specified player from the playerDataSets cache.
-     * @apiNote Doesn't auto save to db, if you use this, the data not saved will be loss.
+     * @implNote Doesn't auto save to db, if you use this, the data not saved will be loss.
      */
     public void remveFromPlayerCache(UUID uuid) {
         playerDataSets.remove(uuid);
@@ -99,7 +99,7 @@ public class StorageManager {
      * Searches through the 'players' table in the database for the provided UUID.
      * @param uuid The UUID for the specified player.
      * @return If an uuid is found, it will return true, otherwise, false.
-     * @apiNote Ideally should run asynchronously, but can run synchronously.
+     * @implNote Ideally should run asynchronously, but can run synchronously.
      */
     public boolean playerIsRegistered(UUID uuid) {
         String sql = "SELECT 1 FROM players WHERE uuid = ?";
@@ -119,7 +119,7 @@ public class StorageManager {
 
     /**
      * Loads the player to cache, will do nothing if the player already is in cache.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      */
     public void loadPlayerToCache(Player player) {
 
@@ -180,7 +180,7 @@ public class StorageManager {
 
     /**
      * Saves player data to database.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @param playerDataSet The PlayerDataSet to be saved in database.
      */
     @SuppressWarnings("unchecked")
@@ -219,7 +219,7 @@ public class StorageManager {
 
     /**
      * Automatically gets the dataset, from the given uuid, and then calls savePlayerData(dataSet).
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @param uuid The player's uuid
      * @throws IllegalStateException Throws only when there's no cached player data to save.
      */
@@ -261,7 +261,7 @@ public class StorageManager {
 
     /**
      * Saves plugin data to database.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @param pluginDataSet The PluginDataSet to be saved in database.
      */
     @SuppressWarnings("unchecked")
@@ -298,7 +298,7 @@ public class StorageManager {
 
     /**
      * gets the initial_ip from the players table and returns it.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @return The initial ip that is set to the players database at first join.
      */
     public @Nullable String getFirstIP(UUID uuid) {
@@ -319,7 +319,7 @@ public class StorageManager {
 
     /**
      * gets the joined_at from the players table and returns it.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @return The joined at timestamp that is set to the players database at first join.
      */
     public @Nullable Timestamp getPlayerJoinedAt(UUID uuid) {
@@ -340,7 +340,7 @@ public class StorageManager {
 
     /**
      * gets the id from the players table and returns it.
-     * @apiNote Only use asynchronously.
+     * @implNote Only use asynchronously.
      * @return The player id that is set to the players database at first join.
      */
     public @Nullable Integer getPlayerID(UUID uuid) {
