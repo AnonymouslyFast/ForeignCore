@@ -35,7 +35,7 @@ public final class ForeignCore extends JavaPlugin {
         }
 
         // Test of plugin data usage
-//        if (!pluginDataSet.contains("testValue")) {
+        //        if (!pluginDataSet.contains("testValue")) {
 //            pluginDataSet.put("testValue", 80085);
 //            getLogger().info("Set the test value!");
 //        }
@@ -56,8 +56,8 @@ public final class ForeignCore extends JavaPlugin {
                     }
                 });
             }
+            getLogger().info("DATABASE AUTOSAVE: Cache has been saved, and cleaned up!");
         }, AUTO_SAVE_INITIAL_DELAY, AUTO_SAVE_DELAY, TimeUnit.MINUTES);
-        getLogger().info("DATABASE AUTOSAVE: Cache has been saved, and cleaned up!");
     }
 
     @Override
